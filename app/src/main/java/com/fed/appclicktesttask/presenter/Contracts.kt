@@ -1,10 +1,15 @@
 package com.fed.appclicktesttask.presenter
 
 
-interface MainActivityListener {
-
+interface AdFragmentInterface {
+    fun showAlertPermissionDialog()
+    fun showServerAnswerAlertDialog(string: String?)
+    fun loadWebView(url: String?)
+    fun getIMSI(): Long
 }
 
-interface MainActivityInterface {
-
+interface AdPresenterInterface {
+    fun onFragmentLoaded()
+    fun attachView(fragment: AdFragmentInterface)
+    fun detachView()
 }
