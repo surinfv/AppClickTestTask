@@ -1,4 +1,4 @@
-package com.fed.appclicktesttask
+package com.fed.appclicktesttask.view
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -7,39 +7,39 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
 import android.telephony.TelephonyManager
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.ProgressBar
+import com.fed.appclicktesttask.R
 import com.fed.appclicktesttask.model.POJO
 import com.fed.appclicktesttask.network.RetroClient
 import com.tbruyelle.rxpermissions2.RxPermissions
+import kotlinx.android.synthetic.main.fragment_layout.*
 import retrofit2.Call
 import retrofit2.Callback
 
 
-class MainActivity : AppCompatActivity() {
-    private val TAG = "MainActivity"
+class AdFragment : Fragment() {
+
+    private val TAG = "AdFragment"
     private val SAMPLE_ID: Long = 85950205030644900
     private var rxPermissions: RxPermissions? = null
-    private var webView: WebView? = null
-    private var progressBar: ProgressBar? = null
     private var imsi: Long = SAMPLE_ID
 
-    override
-    fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        webView = findViewById(R.id.webview)
-        progressBar = findViewById(R.id.progressBar)
-        rxPermissions = RxPermissions(this)
+    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater?.inflate(R.layout.fragment_layout, container, false)
+    }
 
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        rxPermissions = RxPermissions(activity)
         checkPermissions()
-        Log.i(TAG, imsi.toString())
     }
 
     private fun checkPermissions() {
@@ -58,8 +58,9 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("MissingPermission", "HardwareIds")
     private fun setIMSI() {
-        val telephoneManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        val telephoneManager = activity.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         imsi = telephoneManager.subscriberId.toLong()
+        Log.i(TAG, imsi.toString())
     }
 
     private fun doRequest() {
@@ -80,11 +81,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadWebView(url: String?) {
-        webView!!.webViewClient = object : WebViewClient() {
+        webview.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.data = Uri.parse(url)
-                finishAffinity()
+                activity.finishAffinity()
                 startActivity(intent)
                 return true
             }
@@ -93,27 +94,27 @@ class MainActivity : AppCompatActivity() {
                 showWebView()
             }
         }
-        webView!!.loadUrl(url)
+        webview.loadUrl(url)
     }
 
     private fun showWebView() {
         progressBar?.visibility = View.GONE
-        webView?.visibility = View.VISIBLE
+        webview.visibility = View.VISIBLE
     }
 
     private fun showServerAnswerAlertDialog(string: String?) {
-        val alertDialog = AlertDialog.Builder(this@MainActivity).create()
+        val alertDialog = AlertDialog.Builder(activity).create()
         alertDialog.apply {
             setTitle("wrong answer from server")
             setMessage(string)
             setButton(AlertDialog.BUTTON_POSITIVE, "OK", { _, _ ->
-                finishAffinity()
+                activity.finishAffinity()
             })
         }.show()
     }
 
     private fun showAlertPermissionDialog() {
-        val alertDialog = AlertDialog.Builder(this@MainActivity).create()
+        val alertDialog = AlertDialog.Builder(activity).create()
         alertDialog.apply {
             setTitle("App need permission")
             setMessage("app need permission to get IMSI")
@@ -126,12 +127,12 @@ class MainActivity : AppCompatActivity() {
     private fun openSettings() {
         val intent = Intent()
         intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-        val uri = Uri.fromParts("package", packageName, null)
+        val uri = Uri.fromParts("package", activity.packageName, null)
         intent.data = uri
 //        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 //        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
 //        intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
-        finishAffinity()
+        activity.finishAffinity()
         startActivity(intent)
     }
 }
